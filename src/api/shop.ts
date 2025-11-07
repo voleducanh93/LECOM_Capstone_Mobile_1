@@ -43,7 +43,7 @@ export interface RegisterShopPayload {
   categoryId: string;
   acceptedTerms: boolean;
   ownerFullName: string;
-  ownerDateOfBirth: string; // ISO 8601 format: "2003-10-28T21:21:51.210Z"
+  ownerDateOfBirth: string; 
   ownerPersonalIdNumber: string;
   ownerPersonalIdFrontUrl: string;
   ownerPersonalIdBackUrl: string;

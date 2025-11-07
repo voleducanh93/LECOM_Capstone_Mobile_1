@@ -1,6 +1,5 @@
-import { CourseDetailScreen } from "@/features/courses/screens/CourseDetailScreen";
-import { CourseListScreen } from "@/features/courses/screens/CourseListScreen";
-import { VideoPlayerScreen } from "@/features/courses/screens/VideoPlayerScreen";
+
+import { CoursesScreen } from "@/features/courses/screens/CoursesScreen";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
 import { CoursesStackParamList } from "./types";
@@ -22,27 +21,13 @@ export function CoursesStackNavigator() {
       }}
     >
       <Stack.Screen
-        name="CourseList"
-        component={CourseListScreen}
+        name="CoursesList"
+        component={CoursesScreen}
         options={{
           title: "Danh sách khóa học",
         }}
       />
-      <Stack.Screen
-        name="CourseDetail"
-        component={CourseDetailScreen}
-        options={({ route }) => ({
-          title: route.params.courseName,
-        })}
-      />
-      <Stack.Screen
-        name="VideoPlayer"
-        component={VideoPlayerScreen}
-        options={({ route }) => ({
-          title: route.params.videoTitle,
-          headerShown: true,
-        })}
-      />
+      
     </Stack.Navigator>
   );
 }

@@ -17,7 +17,8 @@ import { useMyProfile } from "../hooks/useMyProfile";
 type Props = ProfileStackScreenProps<"ProfileMain">;
 
 export function ProfileScreen({ navigation }: Props) {
-  const { user, logout, isLoading: authLoading } = useAuthStore();
+  // Destructure only existing fields from the auth store
+  const { logout, isLoading: authLoading, userId } = useAuthStore();
   const { data, isLoading, isError, refetch } = useMyProfile();
   const profile = data?.result;
 
@@ -124,9 +125,9 @@ export function ProfileScreen({ navigation }: Props) {
           <View className="w-full bg-light-card dark:bg-dark-card rounded-2xl p-4 mb-6 border border-light-border dark:border-dark-border">
             <Text className="text-sm text-light-textSecondary dark:text-dark-textSecondary mb-2">
               Thông tin đăng nhập:
-            </Text>
             <Text className="text-base text-light-text dark:text-dark-text font-semibold">
-              User ID: {user?.userId || "N/A"}
+              User ID: {userId || "N/A"}
+            </Text>
             </Text>
           </View>
 

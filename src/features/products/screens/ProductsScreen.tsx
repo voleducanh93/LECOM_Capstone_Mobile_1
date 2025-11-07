@@ -3,18 +3,19 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    Platform,
-    Pressable,
-    RefreshControl,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Platform,
+  Pressable,
+  RefreshControl,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useProducts } from "../hooks/useProducts";
+import { useProductCategories } from "@/hooks/useProductCategories"; 
 
 type ProductsStackParamList = {
   Products: undefined;
@@ -26,25 +27,37 @@ export function ProductsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<ProductsStackParamList>>();
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined); 
   const pageSize = 10;
 
+  // ✅ Lấy danh mục
+  const { data: categories } = useProductCategories();
+
+  // ✅ Gửi categoryName lên API khi có chọn
   const { data, isLoading, isError, refetch, isRefetching } = useProducts({
     search: searchQuery || undefined,
     page,
     pageSize,
+    category: selectedCategory || undefined, // ✅ thêm vào params API
   });
 
   const productData = data?.result;
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
-    setPage(1); // Reset to first page on new search
+    setPage(1);
   };
 
   const handleLoadMore = () => {
     if (productData && page < productData.totalPages && !isLoading) {
       setPage((prev) => prev + 1);
     }
+  };
+
+  // ✅ Hàm chọn category
+  const handleSelectCategory = (category: string | undefined) => {
+    setSelectedCategory(category);
+    setPage(1);
   };
 
   const renderProductItem = ({ item }: { item: any }) => (
@@ -116,20 +129,6 @@ export function ProductsScreen() {
     </Pressable>
   );
 
-  const renderEmptyState = () => (
-    <View className="flex-1 items-center justify-center py-20">
-      <View className="w-20 h-20 rounded-full bg-beige/20 dark:bg-dark-border/20 items-center justify-center mb-4">
-        <FontAwesome name="shopping-bag" size={40} color="#ACD6B8" />
-      </View>
-      <Text className="text-xl font-bold text-light-text dark:text-dark-text mb-2">
-        No Products Found
-      </Text>
-      <Text className="text-sm text-light-textSecondary dark:text-dark-textSecondary text-center px-8">
-        {searchQuery ? `No results for "${searchQuery}"` : "Try adjusting your search"}
-      </Text>
-    </View>
-  );
-
   const renderHeader = () => (
     <View className="mb-4">
       {/* Stats */}
@@ -151,7 +150,7 @@ export function ProductsScreen() {
       </View>
 
       {/* Search Bar */}
-      <View className="flex-row items-center bg-white dark:bg-dark-card px-4 py-3 rounded-xl border border-beige/30 dark:border-dark-border/30">
+      <View className="flex-row items-center bg-white dark:bg-dark-card px-4 py-3 rounded-xl border border-beige/30 dark:border-dark-border/30 mb-3">
         <FontAwesome name="search" size={16} color="#9CA3AF" />
         <TextInput
           value={searchQuery}
@@ -166,52 +165,52 @@ export function ProductsScreen() {
           </Pressable>
         )}
       </View>
+
+      {/* ✅ Category Filter */}
+      {categories && (
+        <View className="flex-row flex-wrap">
+          <Pressable
+            onPress={() => handleSelectCategory(undefined)}
+            className={`px-3 py-1.5 mr-2 mb-2 rounded-full border ${
+              !selectedCategory
+                ? "bg-mint/10 border-mint"
+                : "border-beige/30 dark:border-dark-border/30"
+            }`}
+          >
+            <Text
+              className={`text-xs font-medium ${
+                !selectedCategory ? "text-mint" : "text-light-textSecondary dark:text-dark-textSecondary"
+              }`}
+            >
+              All
+            </Text>
+          </Pressable>
+
+          {categories.map((cat: any) => (
+            <Pressable
+              key={cat.id}
+              onPress={() => handleSelectCategory(cat.name)}
+              className={`px-3 py-1.5 mr-2 mb-2 rounded-full border ${
+                selectedCategory === cat.name
+                  ? "bg-mint/10 border-mint"
+                  : "border-beige/30 dark:border-dark-border/30"
+              }`}
+            >
+              <Text
+                className={`text-xs font-medium ${
+                  selectedCategory === cat.name
+                    ? "text-mint"
+                    : "text-light-textSecondary dark:text-dark-textSecondary"
+                }`}
+              >
+                {cat.name}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
     </View>
   );
-
-  const renderFooter = () => {
-    if (!isLoading || page === 1) return null;
-    return (
-      <View className="py-4">
-        <ActivityIndicator size="small" color="#ACD6B8" />
-      </View>
-    );
-  };
-
-  if (isLoading && page === 1) {
-    return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-cream dark:bg-dark-background" edges={['top', 'bottom']}>
-        <View className="items-center">
-          <ActivityIndicator size="large" color="#ACD6B8" />
-          <Text className="text-light-textSecondary dark:text-dark-textSecondary mt-4 text-base">
-            Loading products...
-          </Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (isError) {
-    return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-cream dark:bg-dark-background px-6" edges={['top', 'bottom']}>
-        <View className="items-center">
-          <View className="w-20 h-20 rounded-full bg-coral/20 items-center justify-center mb-4">
-            <FontAwesome name="exclamation-triangle" size={40} color="#FF6B6B" />
-          </View>
-          <Text className="text-coral font-bold text-xl mb-2">Oops!</Text>
-          <Text className="text-light-textSecondary dark:text-dark-textSecondary text-center mb-4">
-            Failed to load products
-          </Text>
-          <Pressable
-            className="bg-mint dark:bg-gold px-6 py-3 rounded-xl"
-            onPress={() => refetch()}
-          >
-            <Text className="text-white font-bold">Try Again</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView className="flex-1 bg-cream dark:bg-dark-background" edges={['top', 'bottom']}>
@@ -243,8 +242,19 @@ export function ProductsScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
           ListHeaderComponent={renderHeader}
-          ListEmptyComponent={renderEmptyState}
-          ListFooterComponent={renderFooter}
+          ListEmptyComponent={
+            <View className="flex-1 items-center justify-center py-20">
+              <View className="w-20 h-20 rounded-full bg-beige/20 dark:bg-dark-border/20 items-center justify-center mb-4">
+                <FontAwesome name="shopping-bag" size={40} color="#ACD6B8" />
+              </View>
+              <Text className="text-xl font-bold text-light-text dark:text-dark-text mb-2">
+                No Products Found
+              </Text>
+              <Text className="text-sm text-light-textSecondary dark:text-dark-textSecondary text-center px-8">
+                {searchQuery ? `No results for "${searchQuery}"` : "Try adjusting your search or category"}
+              </Text>
+            </View>
+          }
           refreshControl={
             <RefreshControl
               refreshing={isRefetching}

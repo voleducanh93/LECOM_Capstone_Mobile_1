@@ -87,7 +87,7 @@ export const profileApi = {
             });
             console.log("📥 API: Change password response:", {
                 isSuccess: data.isSuccess,
-                message: data.message,
+                message: data.statusCode,
             });
             return data;
         } catch (error: any) {

@@ -19,16 +19,8 @@ export type AuthStackScreenProps<T extends keyof AuthStackParamList> =
 // COURSES STACK
 // ==============================================
 export type CoursesStackParamList = {
-  CourseList: undefined;
-  CourseDetail: {
-    courseId: number;
-    courseName: string;
-  };
-  VideoPlayer: {
-    courseId: number;
-    videoId: number;
-    videoTitle: string;
-  };
+  CoursesList: undefined;
+  
 };
 
 export type CoursesStackScreenProps<T extends keyof CoursesStackParamList> =

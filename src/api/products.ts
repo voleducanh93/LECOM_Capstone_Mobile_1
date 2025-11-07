@@ -28,6 +28,7 @@ export interface ProductItem {
 
 export interface ProductListResult {
   totalItems: number
+  category: string | null
   page: number
   pageSize: number
   totalPages: number
@@ -39,6 +40,7 @@ export type ProductListResponse = ApiResponse<ProductListResult>
 export interface ProductQueryParams {
   search?: string
   page?: number
+   category?: string
   pageSize?: number
   minPrice?: number
   maxPrice?: number
