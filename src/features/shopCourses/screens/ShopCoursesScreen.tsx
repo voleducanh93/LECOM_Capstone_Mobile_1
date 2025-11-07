@@ -13,17 +13,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useCourseProducts } from "../hooks/useCourseProducts";
-
-type ShopCoursesStackParamList = {
-  ShopCourses: undefined;
-  ShopCourseDetail: { courseId: string };
-  CreateShopCourse: undefined;
-  EditShopCourse: { courseId: string };
-};
+import type { ShopStackParamList } from "@/navigation/ShopStackNavigator";
 
 export function ShopCoursesScreen() {
   const { data, isLoading, isError } = useCourseProducts();
-  const navigation = useNavigation<NativeStackNavigationProp<ShopCoursesStackParamList>>();
+  // ✅ FIX: Use ShopStackParamList instead of local type
+  const navigation = useNavigation<NativeStackNavigationProp<ShopStackParamList>>();
   const [currentPage, setCurrentPage] = useState(1);
 
   const courses = data?.result || [];
@@ -113,7 +108,11 @@ export function ShopCoursesScreen() {
             <Pressable
               key={course.id}
               className="bg-white dark:bg-dark-card rounded-2xl mb-4 overflow-hidden border border-beige/30 dark:border-dark-border/30"
-              onPress={() => navigation.navigate("ShopCourseDetail", { courseId: course.id })}
+              // ✅ FIX: Navigate to ShopCourseDetail on card press
+              onPress={() => {
+                console.log("📚 Opening course detail:", course.id);
+                navigation.navigate("ShopCourseDetail", { courseId: course.id });
+              }}
               style={({ pressed }) => [
                 {
                   opacity: pressed ? 0.95 : 1,
@@ -192,28 +191,21 @@ export function ShopCoursesScreen() {
 
                   {/* Action Buttons */}
                   <View className="flex-row gap-2">
-                    <Pressable
-                      className="px-3 py-2 rounded-lg bg-skyBlue/10 dark:bg-lavender/10 active:bg-skyBlue/20 dark:active:bg-lavender/20"
-                      onPress={(e) => {
-                        e.stopPropagation();
-                        navigation.navigate("EditShopCourse", { courseId: course.id });
-                      }}
-                    >
-                      <Text className="text-xs font-semibold text-skyBlue dark:text-lavender">
-                        Edit
-                      </Text>
-                    </Pressable>
-
+                    {/* ✅ View Button - Opens detail */}
                     <Pressable
                       className="px-3 py-2 rounded-lg bg-mint/10 dark:bg-gold/10 active:bg-mint/20 dark:active:bg-gold/20"
                       onPress={(e) => {
                         e.stopPropagation();
+                        console.log("📖 View course:", course.id);
                         navigation.navigate("ShopCourseDetail", { courseId: course.id });
                       }}
                     >
-                      <Text className="text-xs font-semibold text-mint dark:text-gold">
-                        View
-                      </Text>
+                      <View className="flex-row items-center">
+                        <FontAwesome name="eye" size={12} color="#ACD6B8" />
+                        <Text className="text-xs font-semibold text-mint dark:text-gold ml-1">
+                          View
+                        </Text>
+                      </View>
                     </Pressable>
                   </View>
                 </View>
@@ -228,7 +220,10 @@ export function ShopCoursesScreen() {
         {/* Add New Course Button */}
         <Pressable
           className="bg-mint dark:bg-gold py-3.5 rounded-xl items-center justify-center active:opacity-80 mb-3"
-          onPress={() => navigation.navigate("CreateShopCourse")}
+          onPress={() => {
+            console.log("➕ Create new course");
+            navigation.navigate("CreateShopCourse");
+          }}
         >
           <View className="flex-row items-center">
             <FontAwesome name="plus" size={16} color="white" />

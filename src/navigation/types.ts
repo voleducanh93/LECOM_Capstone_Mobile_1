@@ -86,6 +86,9 @@ export type ShopStackParamList = {
   };
   ShopCoursesMain: undefined;
   CreateShopCourse: undefined;
+  ShopCourseDetail: {
+    courseId: string;
+  };
 };
 export type ShopStackScreenProps<T extends keyof ShopStackParamList> =
   CompositeScreenProps<
