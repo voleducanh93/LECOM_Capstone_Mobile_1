@@ -2,7 +2,7 @@ import axios from "axios";
 import { useAuthStore } from "../store/auth-store";
 
 export const apiClient = axios.create({
-  baseURL: "http://103.249.201.248:8080/api",
+  baseURL: "https://lecom.click/api",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
