@@ -11,6 +11,8 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
+  Modal,
+  FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
@@ -18,6 +20,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useProductDetail } from "../hooks/useProductDetail";
 import { useUpdateProduct } from "../hooks/useUpdateProduct";
 import { useUploadFile } from "@/hooks/useUploadFile";
+import { useProductCategories } from "@/hooks/useProductCategories";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ShopStackParamList } from "@/navigation/ShopStackNavigator";
 import { ShopProductImage } from "../../../api/shopProducts";
@@ -29,14 +32,17 @@ export const EditProductScreen: React.FC<Props> = ({ route, navigation }) => {
   const { data, isLoading, isError, refetch } = useProductDetail(productId);
   const { mutate: updateProduct, isPending } = useUpdateProduct();
   const { uploadFile, isLoading: isUploading } = useUploadFile();
+  const { data: categories, isLoading: isLoadingCategories } = useProductCategories();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [categoryName, setCategoryName] = useState("");
   const [status, setStatus] = useState<"Draft" | "Published" | "OutOfStock" | "Archived">("Draft");
   const [images, setImages] = useState<ShopProductImage[]>([]);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   const statusOptions = [
     { value: "Draft", label: "Draft", color: "#F59E0B", bgColor: "#FFFBEB", icon: "edit" },
@@ -54,8 +60,16 @@ export const EditProductScreen: React.FC<Props> = ({ route, navigation }) => {
       setCategoryId(data.categoryId);
       setStatus(data.status);
       setImages(data.images);
+
+      // ✅ Find and set category name from fetched categories
+      if (categories) {
+        const category = categories.find((cat) => cat.id === data.categoryId);
+        if (category) {
+          setCategoryName(category.name);
+        }
+      }
     }
-  }, [data]);
+  }, [data, categories]);
 
   if (isLoading) {
     return (
@@ -184,7 +198,7 @@ export const EditProductScreen: React.FC<Props> = ({ route, navigation }) => {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
-        {/* Header - No SafeAreaView here */}
+        {/* Header */}
         <View className="px-6 py-4 bg-white dark:bg-dark-card border-b border-beige/30 dark:border-dark-border/30" style={{ paddingTop: Platform.OS === 'ios' ? 50 : 16 }}>
           <View className="flex-row items-center justify-between">
             <TouchableOpacity
@@ -266,18 +280,27 @@ export const EditProductScreen: React.FC<Props> = ({ route, navigation }) => {
             </View>
           </View>
 
-          {/* Category ID */}
+          {/* ✅ Category Selector */}
           <View className="mb-5">
             <Text className="text-sm font-semibold text-light-text dark:text-dark-text mb-2">
-              Category ID <Text className="text-coral">*</Text>
+              Category <Text className="text-coral">*</Text>
             </Text>
-            <TextInput
-              value={categoryId}
-              onChangeText={setCategoryId}
-              placeholder="e.g., cfood"
-              placeholderTextColor="#9CA3AF"
-              className="bg-white dark:bg-dark-card text-light-text dark:text-dark-text px-4 py-3.5 rounded-xl border border-beige/30 dark:border-dark-border/30"
-            />
+            <TouchableOpacity
+              className="bg-white dark:bg-dark-card px-4 py-3.5 rounded-xl border border-beige/30 dark:border-dark-border/30 flex-row items-center justify-between"
+              onPress={() => setShowCategoryModal(true)}
+              disabled={isPending || isLoadingCategories}
+            >
+              <Text
+                className={`${
+                  categoryName
+                    ? "text-light-text dark:text-dark-text"
+                    : "text-gray-400"
+                }`}
+              >
+                {categoryName || "Select a category"}
+              </Text>
+              <FontAwesome name="chevron-down" size={14} color="#9CA3AF" />
+            </TouchableOpacity>
           </View>
 
           {/* Status */}
@@ -382,6 +405,83 @@ export const EditProductScreen: React.FC<Props> = ({ route, navigation }) => {
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* ✅ Category Modal */}
+      <Modal
+        visible={showCategoryModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowCategoryModal(false)}
+      >
+        <View className="flex-1 justify-end bg-black/50">
+          <View className="bg-white dark:bg-dark-card rounded-t-3xl max-h-[70%]">
+            {/* Modal Header */}
+            <View className="flex-row items-center justify-between px-6 py-4 border-b border-beige/50 dark:border-dark-border/50">
+              <Text className="text-xl font-bold text-light-text dark:text-dark-text">
+                Select Category
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowCategoryModal(false)}
+                className="w-8 h-8 rounded-full bg-beige/50 dark:bg-dark-border/50 items-center justify-center"
+              >
+                <FontAwesome name="times" size={16} color="#4A5568" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Categories List */}
+            {isLoadingCategories ? (
+              <View className="py-12 items-center">
+                <ActivityIndicator size="large" color="#ACD6B8" />
+                <Text className="text-light-textSecondary dark:text-dark-textSecondary mt-4">
+                  Loading categories...
+                </Text>
+              </View>
+            ) : (
+              <FlatList
+                data={categories || []}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    className="px-6 py-4 border-b border-beige/30 dark:border-dark-border/30 active:bg-beige/20 dark:active:bg-dark-border/20"
+                    onPress={() => {
+                      setCategoryId(item.id);
+                      setCategoryName(item.name);
+                      setShowCategoryModal(false);
+                    }}
+                  >
+                    <View className="flex-row items-center justify-between">
+                      <View className="flex-1">
+                        <Text className="text-base font-semibold text-light-text dark:text-dark-text mb-1">
+                          {item.name}
+                        </Text>
+                        {item.description && (
+                          <Text
+                            className="text-sm text-light-textSecondary dark:text-dark-textSecondary"
+                            numberOfLines={1}
+                          >
+                            {item.description}
+                          </Text>
+                        )}
+                      </View>
+                      {categoryId === item.id && (
+                        <FontAwesome name="check-circle" size={20} color="#ACD6B8" />
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                )}
+                ListEmptyComponent={() => (
+                  <View className="py-12 items-center">
+                    <FontAwesome name="inbox" size={48} color="#D1D5DB" />
+                    <Text className="text-light-textSecondary dark:text-dark-textSecondary mt-4">
+                      No categories available
+                    </Text>
+                  </View>
+                )}
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

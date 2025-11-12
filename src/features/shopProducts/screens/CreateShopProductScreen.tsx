@@ -11,6 +11,8 @@ import {
   Pressable,
   Platform,
   KeyboardAvoidingView,
+  Modal,
+  FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
@@ -18,19 +20,23 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useNavigation } from "@react-navigation/native";
 import { useCreateProduct } from "../hooks/useCreateProduct";
 import { useUploadFile } from "@/hooks/useUploadFile";
+import { useProductCategories } from "@/hooks/useProductCategories";
 import { ShopProductImage } from "../../../api/shopProducts";
 
 export const CreateShopProductScreen = () => {
   const navigation = useNavigation();
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [categoryName, setCategoryName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("");
   const [images, setImages] = useState<ShopProductImage[]>([]);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   const { mutate: createProduct, isPending } = useCreateProduct();
   const { uploadFile, isLoading: isUploading } = useUploadFile();
+  const { data: categories, isLoading: isLoadingCategories } = useProductCategories();
 
   const pickAndUpload = async () => {
     try {
@@ -112,6 +118,7 @@ export const CreateShopProductScreen = () => {
               onPress: () => {
                 setName("");
                 setCategoryId("");
+                setCategoryName("");
                 setDescription("");
                 setPrice("");
                 setStock("");
@@ -216,18 +223,27 @@ export const CreateShopProductScreen = () => {
             </View>
           </View>
 
-          {/* Category ID */}
+          {/* ✅ Category Selector */}
           <View className="mb-5">
             <Text className="text-sm font-semibold text-light-text dark:text-dark-text mb-2">
-              Category ID <Text className="text-coral">*</Text>
+              Category <Text className="text-coral">*</Text>
             </Text>
-            <TextInput
-              value={categoryId}
-              onChangeText={setCategoryId}
-              placeholder="e.g., cfood"
-              placeholderTextColor="#9CA3AF"
-              className="bg-white dark:bg-dark-card text-light-text dark:text-dark-text px-4 py-3.5 rounded-xl border border-beige/30 dark:border-dark-border/30"
-            />
+            <TouchableOpacity
+              className="bg-white dark:bg-dark-card px-4 py-3.5 rounded-xl border border-beige/30 dark:border-dark-border/30 flex-row items-center justify-between"
+              onPress={() => setShowCategoryModal(true)}
+              disabled={isPending || isLoadingCategories}
+            >
+              <Text
+                className={`${
+                  categoryName
+                    ? "text-light-text dark:text-dark-text"
+                    : "text-gray-400"
+                }`}
+              >
+                {categoryName || "Select a category"}
+              </Text>
+              <FontAwesome name="chevron-down" size={14} color="#9CA3AF" />
+            </TouchableOpacity>
           </View>
 
           {/* Status */}
@@ -309,6 +325,83 @@ export const CreateShopProductScreen = () => {
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* ✅ Category Modal */}
+      <Modal
+        visible={showCategoryModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowCategoryModal(false)}
+      >
+        <View className="flex-1 justify-end bg-black/50">
+          <View className="bg-white dark:bg-dark-card rounded-t-3xl max-h-[70%]">
+            {/* Modal Header */}
+            <View className="flex-row items-center justify-between px-6 py-4 border-b border-beige/50 dark:border-dark-border/50">
+              <Text className="text-xl font-bold text-light-text dark:text-dark-text">
+                Select Category
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowCategoryModal(false)}
+                className="w-8 h-8 rounded-full bg-beige/50 dark:bg-dark-border/50 items-center justify-center"
+              >
+                <FontAwesome name="times" size={16} color="#4A5568" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Categories List */}
+            {isLoadingCategories ? (
+              <View className="py-12 items-center">
+                <ActivityIndicator size="large" color="#ACD6B8" />
+                <Text className="text-light-textSecondary dark:text-dark-textSecondary mt-4">
+                  Loading categories...
+                </Text>
+              </View>
+            ) : (
+              <FlatList
+                data={categories || []}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    className="px-6 py-4 border-b border-beige/30 dark:border-dark-border/30 active:bg-beige/20 dark:active:bg-dark-border/20"
+                    onPress={() => {
+                      setCategoryId(item.id);
+                      setCategoryName(item.name);
+                      setShowCategoryModal(false);
+                    }}
+                  >
+                    <View className="flex-row items-center justify-between">
+                      <View className="flex-1">
+                        <Text className="text-base font-semibold text-light-text dark:text-dark-text mb-1">
+                          {item.name}
+                        </Text>
+                        {item.description && (
+                          <Text
+                            className="text-sm text-light-textSecondary dark:text-dark-textSecondary"
+                            numberOfLines={1}
+                          >
+                            {item.description}
+                          </Text>
+                        )}
+                      </View>
+                      {categoryId === item.id && (
+                        <FontAwesome name="check-circle" size={20} color="#ACD6B8" />
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                )}
+                ListEmptyComponent={() => (
+                  <View className="py-12 items-center">
+                    <FontAwesome name="inbox" size={48} color="#D1D5DB" />
+                    <Text className="text-light-textSecondary dark:text-dark-textSecondary mt-4">
+                      No categories available
+                    </Text>
+                  </View>
+                )}
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
