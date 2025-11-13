@@ -1,21 +1,23 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import React from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    Image,
-    Platform,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Image,
+  Platform,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useCart } from "../hooks/useCart";
 import { useRemoveFromCart } from "../hooks/useRemoveFromCart";
+import { useUpdateCartItem } from "../hooks/useUpdateCartItem";
 
 export function CartScreen({ navigation }: any) {
   const { items, subtotal, isLoading, isError, refetch } = useCart();
   const removeFromCart = useRemoveFromCart();
+  const updateCartItem = useUpdateCartItem();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -25,32 +27,58 @@ export function CartScreen({ navigation }: any) {
   };
 
   const handleRemoveItem = (productId: string, productName: string) => {
-    Alert.alert(
-      "Remove Item",
-      `Remove "${productName}" from cart?`,
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
+    Alert.alert("Remove Item", `Remove "${productName}" from cart?`, [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Remove",
+        style: "destructive",
+        onPress: () => {
+          removeFromCart.mutate(productId, {
+            onSuccess: () => {
+              Alert.alert("Success", "Product removed from cart");
+            },
+            onError: (error: any) => {
+              Alert.alert(
+                "Error",
+                error.response?.data?.message || "Failed to remove product"
+              );
+            },
+          });
         },
-        {
-          text: "Remove",
-          style: "destructive",
-          onPress: () => {
-            removeFromCart.mutate(productId, {
-              onSuccess: () => {
-                Alert.alert("Success", "Product removed from cart");
-              },
-              onError: (error: any) => {
-                Alert.alert(
-                  "Error",
-                  error.response?.data?.message || "Failed to remove product"
-                );
-              },
-            });
-          },
+      },
+    ]);
+  };
+
+  // ✅ Quick Update Quantity - Sử dụng quantityChange
+  const handleQuickUpdate = (item: any, change: number) => {
+    const newQuantity = item.quantity + change;
+
+    if (newQuantity < 1) {
+      Alert.alert("Invalid Quantity", "Quantity must be at least 1");
+      return;
+    }
+
+    updateCartItem.mutate(
+      {
+        productId: item.productId,
+        payload: {
+          quantityChange: change, // ✅ +1 hoặc -1
         },
-      ]
+      },
+      {
+        onSuccess: () => {
+          // Success - cart sẽ tự động refetch
+        },
+        onError: (error: any) => {
+          Alert.alert(
+            "Error",
+            error.response?.data?.message || "Failed to update quantity"
+          );
+        },
+      }
     );
   };
 
@@ -172,9 +200,37 @@ export function CartScreen({ navigation }: any) {
               <Text className="text-lg font-bold text-mint dark:text-gold">
                 {formatPrice(item.unitPrice)}
               </Text>
-              <Text className="text-xs text-light-textSecondary dark:text-dark-textSecondary">
-                Quantity: {item.quantity}
-              </Text>
+
+              {/* ✅ Quantity Controls */}
+              <View className="flex-row items-center mt-2">
+                <TouchableOpacity
+                  className={`w-8 h-8 rounded-full items-center justify-center ${
+                    item.quantity === 1
+                      ? "bg-gray-200 dark:bg-gray-700"
+                      : "bg-mint/20 dark:bg-gold/20"
+                  }`}
+                  onPress={() => handleQuickUpdate(item, -1)}
+                  disabled={item.quantity === 1 || updateCartItem.isPending}
+                >
+                  <FontAwesome
+                    name="minus"
+                    size={12}
+                    color={item.quantity === 1 ? "#9CA3AF" : "#ACD6B8"}
+                  />
+                </TouchableOpacity>
+
+                <Text className="text-base font-bold text-light-text dark:text-dark-text mx-4">
+                  {item.quantity}
+                </Text>
+
+                <TouchableOpacity
+                  className="w-8 h-8 rounded-full bg-mint/20 dark:bg-gold/20 items-center justify-center"
+                  onPress={() => handleQuickUpdate(item, +1)}
+                  disabled={updateCartItem.isPending}
+                >
+                  <FontAwesome name="plus" size={12} color="#ACD6B8" />
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Subtotal */}
@@ -191,21 +247,9 @@ export function CartScreen({ navigation }: any) {
       </View>
 
       {/* Actions */}
-      <View className="flex-row border-t border-beige/30 dark:border-dark-border/30">
+      <View className="border-t border-beige/30 dark:border-dark-border/30">
         <TouchableOpacity
-          className="flex-1 flex-row items-center justify-center py-3 border-r border-beige/30 dark:border-dark-border/30"
-          onPress={() => {
-            Alert.alert("Update Quantity", "Update quantity feature coming soon");
-          }}
-        >
-          <FontAwesome name="edit" size={16} color="#ACD6B8" />
-          <Text className="text-mint dark:text-gold font-semibold ml-2">
-            Edit
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          className="flex-1 flex-row items-center justify-center py-3"
+          className="flex-row items-center justify-center py-3"
           onPress={() => handleRemoveItem(item.productId, item.productName)}
           disabled={removeFromCart.isPending}
         >
@@ -288,9 +332,7 @@ export function CartScreen({ navigation }: any) {
                 <Text className="text-light-textSecondary dark:text-dark-textSecondary">
                   Shipping
                 </Text>
-                <Text className="text-mint dark:text-gold font-semibold">
-                  Free
-                </Text>
+                <Text className="text-mint dark:text-gold font-semibold">Free</Text>
               </View>
               <View className="h-px bg-beige/30 dark:bg-dark-border/30 my-2" />
               <View className="flex-row justify-between">
