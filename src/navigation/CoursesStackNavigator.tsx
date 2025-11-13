@@ -1,4 +1,5 @@
 
+import { CourseDetailScreen } from "@/features/courses/screens/CourseDetailScreen";
 import { CoursesScreen } from "@/features/courses/screens/CoursesScreen";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
@@ -25,6 +26,13 @@ export function CoursesStackNavigator() {
         component={CoursesScreen}
         options={{
           title: "Danh sách khóa học",
+        }}
+      />
+      <Stack.Screen
+        name="CourseDetail"
+        component={CourseDetailScreen}
+        options={{
+          title: "Chi tiết khóa học",
         }}
       />
       

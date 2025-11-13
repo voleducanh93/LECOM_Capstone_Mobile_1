@@ -81,10 +81,10 @@ const { data: categoriesData, isLoading: isCategoriesLoading } = useCourseCatego
   const renderCourseCard = ({ item }: { item: CourseItem }) => (
     <TouchableOpacity
       className="bg-white dark:bg-dark-card rounded-2xl overflow-hidden mb-4 shadow-sm border border-beige/30 dark:border-dark-border/30"
-      // activeOpacity={0.7}
-      // onPress={() =>
-      //   navigation.navigate("CourseDetail", { courseId: item.id })
-      // }
+      activeOpacity={0.7}
+      onPress={() =>
+        navigation.navigate("CourseDetail", { slug: item.slug })
+      }
     >
       {/* Thumbnail */}
       <View className="relative">
@@ -103,7 +103,7 @@ const { data: categoriesData, isLoading: isCategoriesLoading } = useCourseCatego
         {/* Active Badge */}
         {item.active === 1 && (
           <View className="absolute top-3 right-3 px-3 py-1 rounded-full bg-mint/90 dark:bg-gold/90">
-            <Text className="text-white text-xs font-bold">Đang mở</Text>
+            <Text className="text-white text-xs font-bold">Active</Text>
           </View>
         )}
 

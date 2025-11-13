@@ -23,7 +23,36 @@ export interface CourseListResult {
   items: CourseItem[]
 }
 
+export interface CourseDetailResult {
+  id: string
+  title: string
+  slug: string
+  summary: string
+  categoryName: string
+  courseThumbnail: string
+  shop: {
+    id: number
+    name: string
+    avatar: string | null
+    description: string
+  }
+  sections: {
+    id: string
+    title: string
+    orderIndex: number
+    lessons: {
+      id: string
+      title: string
+      type: string
+      durationSeconds: number
+      contentUrl: string
+    }[]
+  }[]
+}
+
+
 export type CourseListResponse = ApiResponse<CourseListResult>
+export type CourseDetailResponse = ApiResponse<CourseDetailResult>
 
 export interface CourseQueryParams {
   limit?: number
@@ -36,6 +65,11 @@ export const courseApi = {
     const { data } = await apiClient.get<CourseListResponse>("/home/courses", {
       params,
     })
+    return data
+  },
+
+  getCourseBySlug: async (slug: string): Promise<CourseDetailResponse> => {
+    const { data } = await apiClient.get<CourseDetailResponse>(`/home/courses/${slug}`)
     return data
   },
 }

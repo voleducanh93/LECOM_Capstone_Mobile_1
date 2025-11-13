@@ -20,6 +20,9 @@ export type AuthStackScreenProps<T extends keyof AuthStackParamList> =
 // ==============================================
 export type CoursesStackParamList = {
   CoursesList: undefined;
+  CourseDetail: {
+    slug: string;
+  };
   
 };
 
