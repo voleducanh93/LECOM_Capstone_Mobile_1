@@ -1,16 +1,18 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    Platform,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useCourseBySlug } from "../hooks/useCourseBySlug";
+import { useEnrollCourse } from "../hooks/useEnrollCourse";
+import { useCourseEnrollment } from "../hooks/useCourseEnrollment";
 
 export function CourseDetailScreen({ navigation, route }: any) {
   const { slug } = route.params;
@@ -18,6 +20,22 @@ export function CourseDetailScreen({ navigation, route }: any) {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
 
   const course = data?.result;
+  const courseId = course?.id ?? "";
+
+  // 🔹 hook check enrollment
+  const {
+    data: enrollment,
+    isLoading: isEnrollmentLoading,
+    isError: isEnrollmentError,
+    refetch: refetchEnrollment,
+  } = useCourseEnrollment(courseId);
+
+  // 🔹 hook enroll
+  const enrollMutation = useEnrollCourse(courseId);
+
+  const isEnrolled = !!enrollment;
+  const isEnrollDisabled =
+    !courseId || isEnrollmentLoading || enrollMutation.isPending || isEnrolled;
 
   const toggleSection = (sectionId: string) => {
     setExpandedSections((prev) => {
@@ -133,7 +151,7 @@ export function CourseDetailScreen({ navigation, route }: any) {
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Course Thumbnail */}
+        {/* Thumbnail */}
         <View className="relative">
           {course.courseThumbnail ? (
             <Image
@@ -147,13 +165,12 @@ export function CourseDetailScreen({ navigation, route }: any) {
             </View>
           )}
 
-          {/* Gradient Overlay */}
           <View className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/60 to-transparent" />
         </View>
 
         {/* Course Info */}
         <View className="px-6 py-6">
-          {/* Category Badge */}
+          {/* Category */}
           <View className="flex-row items-center mb-4">
             <View className="px-3 py-1 rounded-full bg-mint/10 dark:bg-gold/10">
               <Text className="text-mint dark:text-gold text-xs font-semibold">
@@ -205,7 +222,7 @@ export function CourseDetailScreen({ navigation, route }: any) {
             </View>
           </View>
 
-          {/* Shop Info */}
+          {/* Instructor */}
           <View className="bg-white dark:bg-dark-card rounded-2xl p-6 mb-6 border border-beige/30 dark:border-dark-border/30">
             <Text className="text-lg font-bold text-light-text dark:text-dark-text mb-4">
               Instructor
@@ -272,7 +289,6 @@ export function CourseDetailScreen({ navigation, route }: any) {
                 key={section.id}
                 className="mb-4 bg-white dark:bg-dark-card rounded-2xl overflow-hidden border border-beige/30 dark:border-dark-border/30"
               >
-                {/* Section Header */}
                 <TouchableOpacity
                   className="flex-row items-center justify-between p-4"
                   onPress={() => toggleSection(section.id)}
@@ -311,7 +327,6 @@ export function CourseDetailScreen({ navigation, route }: any) {
                   />
                 </TouchableOpacity>
 
-                {/* Lessons */}
                 {isExpanded && (
                   <View className="px-4 pb-4">
                     {section.lessons.map((lesson, lessonIndex) => (
@@ -379,13 +394,44 @@ export function CourseDetailScreen({ navigation, route }: any) {
       {/* Bottom Action */}
       <View className="px-6 py-4 bg-white dark:bg-dark-card border-t border-beige/30 dark:border-dark-border/30">
         <TouchableOpacity
-          className="bg-mint dark:bg-gold rounded-full py-4 items-center flex-row justify-center"
-          onPress={() => {
-            Alert.alert("Enroll", "Course enrollment feature coming soon");
+          disabled={isEnrollDisabled}
+          className={`rounded-full py-4 items-center flex-row justify-center
+            ${
+              isEnrolled
+                ? "bg-beige dark:bg-dark-border"
+                : "bg-mint dark:bg-gold"
+            }
+            ${isEnrollDisabled && !isEnrolled ? "opacity-60" : ""}
+          `}
+          onPress={async () => {
+            if (!courseId || isEnrolled) return;
+            try {
+              const result = await enrollMutation.mutateAsync();
+              Alert.alert("Success", "You have enrolled in this course");
+              refetchEnrollment();
+            } catch (error: any) {
+              Alert.alert("Error", error?.message ?? "Failed to enroll");
+            }
           }}
         >
-          <FontAwesome name="graduation-cap" size={20} color="white" />
-          <Text className="text-white text-base font-bold ml-2">Enroll Now</Text>
+          {enrollMutation.isPending ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <>
+              <FontAwesome
+                name="graduation-cap"
+                size={20}
+                color={isEnrolled ? "#6B7280" : "white"}
+              />
+              <Text
+                className={`text-base font-bold ml-2 ${
+                  isEnrolled ? "text-light-textSecondary dark:text-dark-textSecondary" : "text-white"
+                }`}
+              >
+                {isEnrolled ? "Enrolled" : "Enroll Now"}
+              </Text>
+            </>
+          )}
         </TouchableOpacity>
       </View>
     </View>

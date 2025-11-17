@@ -3,9 +3,9 @@ import React from "react";
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
   Image,
   Platform,
+  ScrollView,
   Text,
   TouchableOpacity,
   View,
@@ -18,6 +18,9 @@ export function CartScreen({ navigation }: any) {
   const { items, subtotal, isLoading, isError, refetch } = useCart();
   const removeFromCart = useRemoveFromCart();
   const updateCartItem = useUpdateCartItem();
+
+  // ✅ Fixed shipping fee
+  const SHIPPING_FEE = 30000;
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -53,8 +56,8 @@ export function CartScreen({ navigation }: any) {
   };
 
   // ✅ Quick Update Quantity - Sử dụng quantityChange
-  const handleQuickUpdate = (item: any, change: number) => {
-    const newQuantity = item.quantity + change;
+  const handleQuickUpdate = (productId: string, currentQuantity: number, change: number) => {
+    const newQuantity = currentQuantity + change;
 
     if (newQuantity < 1) {
       Alert.alert("Invalid Quantity", "Quantity must be at least 1");
@@ -63,9 +66,9 @@ export function CartScreen({ navigation }: any) {
 
     updateCartItem.mutate(
       {
-        productId: item.productId,
+        productId,
         payload: {
-          quantityChange: change, // ✅ +1 hoặc -1
+          quantityChange: change,
         },
       },
       {
@@ -83,11 +86,22 @@ export function CartScreen({ navigation }: any) {
   };
 
   const handleCheckout = () => {
-    if (items.length === 0) {
+    if (!items || items.length === 0) {
       Alert.alert("Empty Cart", "Please add items to cart before checkout");
       return;
     }
-    Alert.alert("Checkout", "Checkout feature coming soon");
+    // ✅ Navigate to Checkout Screen
+    navigation.navigate("Checkout");
+  };
+
+  const getTotalItems = () => {
+    if (!items) return 0;
+    return items.reduce((total, shop) => total + shop.items.length, 0);
+  };
+
+  // ✅ Calculate total with shipping
+  const calculateTotal = () => {
+    return subtotal + SHIPPING_FEE;
   };
 
   const renderEmptyCart = () => (
@@ -96,7 +110,7 @@ export function CartScreen({ navigation }: any) {
         <FontAwesome name="shopping-cart" size={64} color="#D1D5DB" />
       </View>
       <Text className="text-2xl font-bold text-light-text dark:text-dark-text mb-3">
-        Your Cart is Empty
+        Cart is Empty
       </Text>
       <Text className="text-light-textSecondary dark:text-dark-textSecondary text-center mb-8">
         Add products to your cart to see them here
@@ -137,8 +151,11 @@ export function CartScreen({ navigation }: any) {
     </View>
   );
 
-  const renderCartItem = ({ item, index }: { item: any; index: number }) => (
-    <View className="bg-white dark:bg-dark-card rounded-2xl mb-4 overflow-hidden border border-beige/30 dark:border-dark-border/30">
+  const renderCartItem = (item: any, itemIndex: number) => (
+    <View
+      key={item.productId}
+      className="bg-white dark:bg-dark-card rounded-2xl mb-3 overflow-hidden border border-beige/30 dark:border-dark-border/30"
+    >
       <View className="flex-row p-4">
         {/* Product Image */}
         <TouchableOpacity
@@ -152,22 +169,22 @@ export function CartScreen({ navigation }: any) {
           {item.productImage ? (
             <Image
               source={{ uri: item.productImage }}
-              className="w-24 h-24 rounded-xl"
+              className="w-20 h-20 rounded-xl"
               resizeMode="cover"
             />
           ) : (
-            <View className="w-24 h-24 rounded-xl bg-beige/30 dark:bg-dark-border/30 items-center justify-center">
-              <FontAwesome name="image" size={32} color="#D1D5DB" />
+            <View className="w-20 h-20 rounded-xl bg-beige/30 dark:bg-dark-border/30 items-center justify-center">
+              <FontAwesome name="image" size={28} color="#D1D5DB" />
             </View>
           )}
           {/* Index Badge */}
-          <View className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-mint dark:bg-gold items-center justify-center">
-            <Text className="text-white text-xs font-bold">{index + 1}</Text>
+          <View className="absolute -top-2 -left-2 w-5 h-5 rounded-full bg-mint dark:bg-gold items-center justify-center">
+            <Text className="text-white text-xs font-bold">{itemIndex + 1}</Text>
           </View>
         </TouchableOpacity>
 
         {/* Product Info */}
-        <View className="flex-1 ml-4">
+        <View className="flex-1 ml-3">
           <TouchableOpacity
             onPress={() => {
               if (item.productSlug) {
@@ -176,69 +193,57 @@ export function CartScreen({ navigation }: any) {
             }}
           >
             <Text
-              className="text-base font-bold text-light-text dark:text-dark-text mb-1"
+              className="text-sm font-bold text-light-text dark:text-dark-text mb-1"
               numberOfLines={2}
             >
               {item.productName}
             </Text>
           </TouchableOpacity>
 
-          {/* Category */}
-          {item.categoryName && (
-            <View className="flex-row items-center mb-2">
-              <View className="px-2 py-1 rounded bg-mint/10 dark:bg-gold/10">
-                <Text className="text-mint dark:text-gold text-xs font-semibold">
-                  {item.categoryName}
-                </Text>
-              </View>
-            </View>
-          )}
+          {/* Price */}
+          <Text className="text-base font-bold text-mint dark:text-gold mb-2">
+            {formatPrice(item.unitPrice)}
+          </Text>
 
-          {/* Price & Quantity */}
+          {/* Quantity Controls & Subtotal */}
           <View className="flex-row items-center justify-between">
-            <View>
-              <Text className="text-lg font-bold text-mint dark:text-gold">
-                {formatPrice(item.unitPrice)}
+            {/* ✅ Quantity Controls */}
+            <View className="flex-row items-center">
+              <TouchableOpacity
+                className={`w-7 h-7 rounded-full items-center justify-center ${
+                  item.quantity === 1
+                    ? "bg-gray-200 dark:bg-gray-700"
+                    : "bg-mint/20 dark:bg-gold/20"
+                }`}
+                onPress={() => handleQuickUpdate(item.productId, item.quantity, -1)}
+                disabled={item.quantity === 1 || updateCartItem.isPending}
+              >
+                <FontAwesome
+                  name="minus"
+                  size={10}
+                  color={item.quantity === 1 ? "#9CA3AF" : "#ACD6B8"}
+                />
+              </TouchableOpacity>
+
+              <Text className="text-sm font-bold text-light-text dark:text-dark-text mx-3">
+                {item.quantity}
               </Text>
 
-              {/* ✅ Quantity Controls */}
-              <View className="flex-row items-center mt-2">
-                <TouchableOpacity
-                  className={`w-8 h-8 rounded-full items-center justify-center ${
-                    item.quantity === 1
-                      ? "bg-gray-200 dark:bg-gray-700"
-                      : "bg-mint/20 dark:bg-gold/20"
-                  }`}
-                  onPress={() => handleQuickUpdate(item, -1)}
-                  disabled={item.quantity === 1 || updateCartItem.isPending}
-                >
-                  <FontAwesome
-                    name="minus"
-                    size={12}
-                    color={item.quantity === 1 ? "#9CA3AF" : "#ACD6B8"}
-                  />
-                </TouchableOpacity>
-
-                <Text className="text-base font-bold text-light-text dark:text-dark-text mx-4">
-                  {item.quantity}
-                </Text>
-
-                <TouchableOpacity
-                  className="w-8 h-8 rounded-full bg-mint/20 dark:bg-gold/20 items-center justify-center"
-                  onPress={() => handleQuickUpdate(item, +1)}
-                  disabled={updateCartItem.isPending}
-                >
-                  <FontAwesome name="plus" size={12} color="#ACD6B8" />
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                className="w-7 h-7 rounded-full bg-mint/20 dark:bg-gold/20 items-center justify-center"
+                onPress={() => handleQuickUpdate(item.productId, item.quantity, +1)}
+                disabled={updateCartItem.isPending}
+              >
+                <FontAwesome name="plus" size={10} color="#ACD6B8" />
+              </TouchableOpacity>
             </View>
 
             {/* Subtotal */}
             <View className="items-end">
-              <Text className="text-xs text-light-textSecondary dark:text-dark-textSecondary mb-1">
-                Subtotal
+              <Text className="text-xs text-light-textSecondary dark:text-dark-textSecondary">
+                Total
               </Text>
-              <Text className="text-base font-bold text-light-text dark:text-dark-text">
+              <Text className="text-sm font-bold text-light-text dark:text-dark-text">
                 {formatPrice(item.lineTotal)}
               </Text>
             </View>
@@ -249,7 +254,7 @@ export function CartScreen({ navigation }: any) {
       {/* Actions */}
       <View className="border-t border-beige/30 dark:border-dark-border/30">
         <TouchableOpacity
-          className="flex-row items-center justify-center py-3"
+          className="flex-row items-center justify-center py-2.5"
           onPress={() => handleRemoveItem(item.productId, item.productName)}
           disabled={removeFromCart.isPending}
         >
@@ -257,14 +262,65 @@ export function CartScreen({ navigation }: any) {
             <ActivityIndicator size="small" color="#FF6B6B" />
           ) : (
             <>
-              <FontAwesome name="trash-o" size={16} color="#FF6B6B" />
-              <Text className="text-coral font-semibold ml-2">Remove</Text>
+              <FontAwesome name="trash-o" size={14} color="#FF6B6B" />
+              <Text className="text-coral font-semibold ml-2 text-sm">Remove</Text>
             </>
           )}
         </TouchableOpacity>
       </View>
     </View>
   );
+
+  const renderShopGroup = (shop: any, shopIndex: number) => {
+    let itemIndex = 0;
+    // Calculate starting index for this shop
+    for (let i = 0; i < shopIndex; i++) {
+      itemIndex += items[i].items.length;
+    }
+
+    return (
+      <View key={shop.shopId} className="mb-6">
+        {/* Shop Header */}
+        <View className="flex-row items-center mb-3 px-1">
+          {shop.shopAvatar ? (
+            <Image
+              source={{ uri: shop.shopAvatar }}
+              className="w-10 h-10 rounded-full mr-3"
+            />
+          ) : (
+            <View className="w-10 h-10 rounded-full bg-mint/10 dark:bg-gold/10 items-center justify-center mr-3">
+              <FontAwesome name="shopping-cart" size={18} color="#ACD6B8" />
+            </View>
+          )}
+          <View className="flex-1">
+            <Text className="text-base font-bold text-light-text dark:text-dark-text">
+              {shop.shopName}
+            </Text>
+            <Text className="text-xs text-light-textSecondary dark:text-dark-textSecondary">
+              {shop.items.length} {shop.items.length === 1 ? "item" : "items"}
+            </Text>
+          </View>
+          <View className="items-end">
+            <Text className="text-xs text-light-textSecondary dark:text-dark-textSecondary">
+              Subtotal
+            </Text>
+            <Text className="text-base font-bold text-mint dark:text-gold">
+              {formatPrice(shop.subtotal)}
+            </Text>
+          </View>
+        </View>
+
+        {/* Shop Items */}
+        {shop.items.map((item: any) => {
+          const currentItemIndex = itemIndex++;
+          return renderCartItem(item, currentItemIndex);
+        })}
+      </View>
+    );
+  };
+
+  const totalItems = getTotalItems();
+  const totalWithShipping = calculateTotal();
 
   return (
     <View className="flex-1 bg-cream dark:bg-dark-background">
@@ -284,9 +340,10 @@ export function CartScreen({ navigation }: any) {
           <Text className="text-xl font-bold text-light-text dark:text-dark-text">
             Shopping Cart
           </Text>
-          {items.length > 0 && (
+          {totalItems > 0 && (
             <Text className="text-xs text-light-textSecondary dark:text-dark-textSecondary">
-              {items.length} {items.length === 1 ? "item" : "items"}
+              {totalItems} {totalItems === 1 ? "item" : "items"} • {items.length}{" "}
+              {items.length === 1 ? "shop" : "shops"}
             </Text>
           )}
         </View>
@@ -304,17 +361,17 @@ export function CartScreen({ navigation }: any) {
         renderLoading()
       ) : isError ? (
         renderError()
-      ) : items.length === 0 ? (
+      ) : !items || items.length === 0 ? (
         renderEmptyCart()
       ) : (
         <>
-          <FlatList
-            data={items}
-            renderItem={renderCartItem}
-            keyExtractor={(item) => item.productId}
-            contentContainerStyle={{ padding: 24, paddingBottom: 120 }}
+          <ScrollView
+            className="flex-1"
+            contentContainerStyle={{ padding: 20, paddingBottom: 140 }}
             showsVerticalScrollIndicator={false}
-          />
+          >
+            {items.map((shop, index) => renderShopGroup(shop, index))}
+          </ScrollView>
 
           {/* Bottom Summary */}
           <View className="absolute bottom-0 left-0 right-0 bg-white dark:bg-dark-card border-t border-beige/30 dark:border-dark-border/30 px-6 py-4">
@@ -322,7 +379,7 @@ export function CartScreen({ navigation }: any) {
             <View className="mb-4">
               <View className="flex-row justify-between mb-2">
                 <Text className="text-light-textSecondary dark:text-dark-textSecondary">
-                  Subtotal ({items.length} {items.length === 1 ? "item" : "items"})
+                  Subtotal ({totalItems} {totalItems === 1 ? "item" : "items"})
                 </Text>
                 <Text className="text-light-text dark:text-dark-text font-semibold">
                   {formatPrice(subtotal)}
@@ -330,9 +387,11 @@ export function CartScreen({ navigation }: any) {
               </View>
               <View className="flex-row justify-between mb-2">
                 <Text className="text-light-textSecondary dark:text-dark-textSecondary">
-                  Shipping
+                  Shipping Fee
                 </Text>
-                <Text className="text-mint dark:text-gold font-semibold">Free</Text>
+                <Text className="text-light-text dark:text-dark-text font-semibold">
+                  {formatPrice(SHIPPING_FEE)}
+                </Text>
               </View>
               <View className="h-px bg-beige/30 dark:bg-dark-border/30 my-2" />
               <View className="flex-row justify-between">
@@ -340,7 +399,7 @@ export function CartScreen({ navigation }: any) {
                   Total
                 </Text>
                 <Text className="text-lg font-bold text-mint dark:text-gold">
-                  {formatPrice(subtotal)}
+                  {formatPrice(totalWithShipping)}
                 </Text>
               </View>
             </View>

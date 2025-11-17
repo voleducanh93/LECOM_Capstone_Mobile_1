@@ -2,16 +2,16 @@ import { useAddToCart } from "@/features/cart/hooks/useAddToCart";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    Modal,
-    Platform,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Modal,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useProductBySlug } from "../hooks/useProductBySlug";
 
@@ -220,7 +220,7 @@ export function ProductDetailScreen({ navigation, route }: any) {
 
         <TouchableOpacity
           className="w-10 h-10 rounded-full bg-beige/50 dark:bg-dark-border/50 items-center justify-center"
-          onPress={() => navigation.navigate("Cart")}
+          onPress={() => navigation.navigate("CartMain")}
         >
           <FontAwesome name="shopping-cart" size={18} color="#ACD6B8" />
         </TouchableOpacity>

@@ -126,6 +126,8 @@ export type DrawerParamList = {
   MainTabs: undefined;
   Settings: undefined;
   Help: undefined;
+  ShopMain: undefined;
+  OrdersMain: undefined;
 };
 
 export type DrawerScreenProps<T extends keyof DrawerParamList> =
@@ -161,6 +163,7 @@ export type ProductsStackParamList = {
   CartProductDetail: {
     productId: string;       
   };
+  
 };
 
 export type ProductsStackScreenProps<T extends keyof ProductsStackParamList> =
@@ -173,4 +176,25 @@ export type ProductsStackScreenProps<T extends keyof ProductsStackParamList> =
   >;
 
 
+// ==============================================
+// ORDERS STACK
+// ==============================================
+export type OrdersStackParamList = {
+  OrdersMain: undefined;
+  OrderDetail: {
+    orderId: string;
+  };
+  CheckoutSuccess?: {
+    orderId?: string;
+  };
+};
+
+export type OrdersStackScreenProps<T extends keyof OrdersStackParamList> =
+  CompositeScreenProps<
+    NativeStackScreenProps<OrdersStackParamList, T>,
+    CompositeScreenProps<
+      BottomTabScreenProps<MainTabParamList>,
+      RNDrawerScreenProps<DrawerParamList>
+    >
+  >;
 

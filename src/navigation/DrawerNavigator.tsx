@@ -1,7 +1,6 @@
 import { ThemedButton } from "@/components/themed-button";
-import { useAuthStore } from "@/store/auth-store";
 import { SettingsScreen } from "@/features/settings/screens/SettingsScreen";
-import { ShopStackNavigator } from "./ShopStackNavigator"; 
+import { useAuthStore } from "@/store/auth-store";
 import {
   createDrawerNavigator,
   DrawerContentComponentProps,
@@ -11,7 +10,9 @@ import {
 import React from "react";
 import { Alert, Text, View } from "react-native";
 import { MainTabNavigator } from "./MainTabNavigator";
+import { ShopStackNavigator } from "./ShopStackNavigator";
 import { DrawerParamList } from "./types";
+import { OrdersStackNavigator } from "./OrdersStackNavigator";
 
 
 const Drawer = createDrawerNavigator<DrawerParamList>();
@@ -33,7 +34,9 @@ function HelpScreen() {
 
 // Custom Drawer Content
 function CustomDrawerContent(props: DrawerContentComponentProps) {
-  const { user, logout } = useAuthStore();
+  // use selectors with `any` to avoid strict AuthState typing if `user` isn't declared in the store type
+  const user = useAuthStore((s: any) => s.user);
+  const logout = useAuthStore((s: any) => s.logout);
 
   const handleLogout = () => {
     Alert.alert("Đăng xuất", "Bạn có chắc muốn đăng xuất?", [
@@ -108,7 +111,7 @@ export function DrawerNavigator() {
         }}
       />
       <Drawer.Screen
-        name="My Shop"
+        name="ShopMain"
         component={ShopStackNavigator}
         options={{
           title: "My Shop",
@@ -123,6 +126,23 @@ export function DrawerNavigator() {
           },
         }}
       />
+      <Drawer.Screen
+        name="OrdersMain"
+        component={OrdersStackNavigator}
+        options={{
+          title: "My Orders",
+          drawerIcon: ({ color }) => <Text style={{ fontSize: 20 }}>📦</Text>,
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: "#3B82F6",
+          },
+          headerTintColor: "#fff",
+          headerTitleStyle: {
+            fontWeight: "bold",
+          },
+        }}
+      />
+
       <Drawer.Screen
         name="Settings"
         component={SettingsScreen}

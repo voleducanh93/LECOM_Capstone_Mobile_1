@@ -1,19 +1,36 @@
 import { ApiResponse } from "../types/common"
 import { apiClient } from "./client"
 
-export interface CartItem {
+export interface CartProductItem {
   productId: string
   productName: string
+  productSlug: string
   unitPrice: number
   quantity: number
   lineTotal: number
   productImage: string
 }
 
+export interface CartShopGroup {
+  shopId: number
+  shopName: string
+  shopAvatar: string
+  items: CartProductItem[]
+  subtotal: number
+}
+
 export interface CartResult {
   userId: string
-  items: CartItem[]
+  items: CartShopGroup[]
   subtotal: number
+}
+
+
+export interface CheckoutFormPayload {
+  shipToName: string
+  shipToPhone: string
+  shipToAddress: string
+  note?: string
 }
 
 export type CartResponse = ApiResponse<CartResult>
@@ -56,6 +73,42 @@ export const cartApi = {
       `/cart/items/${productId}`,
       payload
     )
+    return data
+  },
+  checkoutFromCart: async (
+    payload: CheckoutFormPayload
+  ): Promise<ApiResponse<any>> => {
+    // 1. Lấy giỏ hàng hiện tại
+    const cartResponse = await cartApi.getCart()
+    const cart = cartResponse.result // kiểu CartResult
+
+    if (!cart || !cart.items || cart.items.length === 0) {
+      throw new Error("Giỏ hàng trống, không thể checkout")
+    }
+
+    // 2. Lấy toàn bộ productId trong cart
+    const selectedProductIds = cart.items.flatMap((shopGroup) =>
+      shopGroup.items.map((item) => item.productId)
+    )
+
+    // 3. Build body đúng format backend yêu cầu
+    const body = {
+      shipToName: payload.shipToName,
+      shipToPhone: payload.shipToPhone,
+      shipToAddress: payload.shipToAddress,
+      note: payload.note ?? "",
+      selectedProductIds,
+      paymentMethod: "payos",       // mặc định
+      walletAmountToUse: null,      // mặc định
+      voucherCode: "string",        // tạm default
+    }
+
+    // 4. Gọi API checkout
+    const { data } = await apiClient.post<ApiResponse<any>>(
+      "/orders/checkout",
+      body
+    )
+
     return data
   },
 }

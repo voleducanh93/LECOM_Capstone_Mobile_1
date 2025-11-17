@@ -1,6 +1,7 @@
+import { CartScreen } from "@/features/cart/screens/CartScreen";
+import { CheckoutScreen } from "@/features/cart/screens/CheckoutScreen";
 import { ProductDetailScreen } from "@/features/products/screens/ProductDetailScreen";
 import { ProductsScreen } from "@/features/products/screens/ProductsScreen";
-import { CartScreen } from "@/features/cart/screens/CartScreen";
 
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
@@ -58,8 +59,12 @@ export function ProductsStackNavigator() {
         component={CartScreen}
         options={{ title: "Giỏ hàng" }}
       />
-   
+    <Stack.Screen
+        name="Checkout"
+        component={CheckoutScreen}
+        options={{ title: "Thanh toán" }}
+      />
      
     </Stack.Navigator>
   );
-}
+} 
