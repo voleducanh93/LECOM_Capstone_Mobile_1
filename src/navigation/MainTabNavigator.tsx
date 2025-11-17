@@ -1,12 +1,11 @@
-import { HomeScreen } from "@/features/home/screens/HomeScreen";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React from "react";
 import { Text } from "react-native";
 import { CoursesStackNavigator } from "./CoursesStackNavigator";
 import { PostsStackNavigator } from "./PostsStackNavigator";
 import { ProfileStackNavigator } from "./ProfileStackNavigator";
-import { MainTabParamList } from "./types";
 import { ProductsStackNavigator } from "./ProductsStackNavigator";
+import { HomeStackNavigator } from "./HomeStackNavigator"; // ✅ Import HomeStackNavigator
 
 const Tab = createBottomTabNavigator<any>();
 
@@ -36,10 +35,11 @@ export function MainTabNavigator() {
     >
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
+        component={HomeStackNavigator} // ✅ Đổi từ HomeScreen thành HomeStackNavigator
         options={{
           title: "Home",
           tabBarIcon: ({ color }) => <Text style={{ fontSize: 24 }}>🏠</Text>,
+          headerShown: true, // ✅ Thêm để ẩn header của Tab
         }}
       />
       <Tab.Screen

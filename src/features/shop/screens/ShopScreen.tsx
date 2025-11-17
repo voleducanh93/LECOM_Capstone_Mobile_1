@@ -345,18 +345,22 @@ export function ShopScreen({ navigation }: any) {
               },
             ]}
           />
+
+          {/* ✅ Manage Your Shop Section */}
           <View className="mt-8 mb-6">
             <Text className="text-lg font-bold text-light-text dark:text-dark-text mb-3">
               Manage Your Shop
             </Text>
-            <View className="flex-row gap-3">
+            
+            {/* First Row - Products & Courses */}
+            <View className="flex-row gap-3 mb-3">
               <TouchableOpacity
                 className="flex-1 bg-skyBlue rounded-2xl p-4 items-center justify-center shadow-md active:opacity-80"
                 onPress={() => navigation.navigate("ShopProductsMain")}
               >
                 <FontAwesome name="cube" size={20} color="white" />
                 <Text className="text-white font-bold mt-2">
-                  Shop&apos;s Products
+                  Products
                 </Text>
               </TouchableOpacity>
 
@@ -365,9 +369,22 @@ export function ShopScreen({ navigation }: any) {
                 onPress={() => navigation.navigate("ShopCoursesMain")}
               >
                 <FontAwesome name="graduation-cap" size={20} color="white" />
-                <Text className="text-white font-bold mt-2">Shop&apos;s Courses</Text>
+                <Text className="text-white font-bold mt-2">
+                  Courses
+                </Text>
               </TouchableOpacity>
             </View>
+
+            {/* ✅ Second Row - Orders */}
+            <TouchableOpacity
+              className="bg-gold rounded-2xl p-4 flex-row items-center justify-center shadow-md active:opacity-80"
+              onPress={() => navigation.navigate("ShopOrdersMain")}
+            >
+              <FontAwesome name="shopping-bag" size={20} color="white" />
+              <Text className="text-white font-bold ml-2">
+                Shop Orders
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* Social Media */}

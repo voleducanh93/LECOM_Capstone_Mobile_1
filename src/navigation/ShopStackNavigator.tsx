@@ -1,5 +1,7 @@
 import { CreateShopCourseScreen } from "@/features/shopCourses/screens/CreateShopCourseScreen";
+import { ShopCourseDetailScreen } from "@/features/shopCourses/screens/ShopCourseDetailScreen";
 import { ShopCoursesScreen } from "@/features/shopCourses/screens/ShopCoursesScreen";
+import { ShopOrdersScreen } from "@/features/shopOrders/screens/ShopOrdersScreen";
 import { CreateShopProductScreen } from "@/features/shopProducts/screens/CreateShopProductScreen";
 import { EditProductScreen } from "@/features/shopProducts/screens/EditProductScreen";
 import { ProductDetailScreen } from "@/features/shopProducts/screens/ShopProductDetailScreen";
@@ -9,7 +11,6 @@ import { ShopRegisterScreen } from "../features/shop/screens/ShopRegisterScreen"
 import { ShopScreen } from "../features/shop/screens/ShopScreen";
 import { UpdateShopScreen } from "../features/shop/screens/ShopUpdateScreen";
 import { ShopProductsScreen } from "../features/shopProducts/screens/ShopProductsScreen";
-import { ShopCourseDetailScreen } from "@/features/shopCourses/screens/ShopCourseDetailScreen";
 export type ShopStackParamList = {
   ShopMain: undefined;
   UpdateShop: undefined;
@@ -27,6 +28,7 @@ export type ShopStackParamList = {
   ShopCourseDetail: {
     courseId: string;
   };
+  ShopOrdersMain: undefined;
 };
 
 const Stack = createNativeStackNavigator<ShopStackParamList>();
@@ -94,6 +96,11 @@ export function ShopStackNavigator() {
         name="ShopCourseDetail"
         component={ShopCourseDetailScreen}
         options={{ title: "Course Detail", presentation: "modal" }}
+      />
+      <Stack.Screen
+        name="ShopOrdersMain"
+        component={ShopOrdersScreen}
+        options={{ title: "Shop Orders", presentation: "card" }}
       />
     </Stack.Navigator>
   );

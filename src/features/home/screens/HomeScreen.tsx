@@ -14,17 +14,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLandingPage } from "../hooks/useLandingPage";
+import type { HomeStackParamList } from "@/navigation/HomeStackNavigator";
 
-type HomeStackParamList = {
-  Home: undefined;
-  CourseDetail: { courseId: string };
-  ProductDetail: { productId: string };
-  CategoryCourses: { categoryId: string; categoryName: string };
-  CategoryProducts: { categoryId: string; categoryName: string };
-  Search: undefined;
-  Chat: undefined;
-  Cart: undefined;
-};
+
 
 export function HomeScreen() {
   const { data, isLoading, isError } = useLandingPage();
@@ -81,13 +73,13 @@ export function HomeScreen() {
           <View className="flex-row gap-2">
             <Pressable
               className="w-12 h-12 rounded-xl bg-mint/10 dark:bg-gold/10 items-center justify-center"
-              onPress={() => navigation.navigate("Chat")}
+              // onPress={() => navigation.navigate("Chat")}
             >
               <FontAwesome name="comments" size={20} color="#ACD6B8" />
             </Pressable>
             <Pressable
               className="w-12 h-12 rounded-xl bg-mint/10 dark:bg-gold/10 items-center justify-center"
-              onPress={() => navigation.navigate("Cart")}
+              // onPress={() => navigation.navigate("Cart")}
             >
               <FontAwesome name="shopping-cart" size={20} color="#ACD6B8" />
             </Pressable>
@@ -97,7 +89,7 @@ export function HomeScreen() {
         {/* Search Bar */}
         <Pressable
           className="flex-row items-center bg-cream dark:bg-dark-background px-4 py-3 rounded-xl border border-beige/30 dark:border-dark-border/30"
-          onPress={() => navigation.navigate("Search")}
+          // onPress={() => navigation.navigate("Search")}
         >
           <FontAwesome name="search" size={16} color="#9CA3AF" />
           <Text className="text-light-textSecondary dark:text-dark-textSecondary ml-3 flex-1">
@@ -129,10 +121,10 @@ export function HomeScreen() {
                 <Pressable
                   key={category.id}
                   className="mr-3 bg-white dark:bg-dark-card rounded-2xl p-4 border border-beige/30 dark:border-dark-border/30 w-40"
-                  onPress={() => navigation.navigate("CategoryCourses", { 
-                    categoryId: category.id, 
-                    categoryName: category.name 
-                  })}
+                  // onPress={() => navigation.navigate("CategoryCourses", { 
+                  //   categoryId: category.id, 
+                  //   categoryName: category.name 
+                  // })}
                 >
                   <View className="w-12 h-12 rounded-xl bg-mint/10 dark:bg-gold/10 items-center justify-center mb-3">
                     <FontAwesome name="book" size={20} color="#ACD6B8" />
@@ -169,10 +161,10 @@ export function HomeScreen() {
                 <Pressable
                   key={category.id}
                   className="mr-3 bg-white dark:bg-dark-card rounded-2xl p-4 border border-beige/30 dark:border-dark-border/30 w-40"
-                  onPress={() => navigation.navigate("CategoryProducts", { 
-                    categoryId: category.id, 
-                    categoryName: category.name 
-                  })}
+                  // onPress={() => navigation.navigate("CategoryProducts", { 
+                  //   categoryId: category.id, 
+                  //   categoryName: category.name 
+                  // })}
                 >
                   <View className="w-12 h-12 rounded-xl bg-skyBlue/10 dark:bg-lavender/10 items-center justify-center mb-3">
                     <FontAwesome name="shopping-bag" size={20} color="#7DD3FC" />
@@ -209,7 +201,7 @@ export function HomeScreen() {
                 <Pressable
                   key={course.id}
                   className="mr-4 bg-white dark:bg-dark-card rounded-2xl overflow-hidden border border-beige/30 dark:border-dark-border/30 w-72"
-                  onPress={() => navigation.navigate("CourseDetail", { courseId: course.id })}
+                  onPress={() => navigation.navigate("CourseDetail", { slug: course.slug })}
                 >
                   <Image
                     source={{ uri: course.courseThumbnail }}
@@ -272,7 +264,7 @@ export function HomeScreen() {
               <Pressable
                 key={product.id}
                 className="bg-white dark:bg-dark-card rounded-2xl mb-4 overflow-hidden border border-beige/30 dark:border-dark-border/30"
-                onPress={() => navigation.navigate("ProductDetail", { productId: product.id })}
+                onPress={() => navigation.navigate("ProductDetail", { slug: product.slug })}
               >
                 <View className="p-4">
                   <View className="flex-row items-start">

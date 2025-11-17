@@ -92,6 +92,7 @@ export type ShopStackParamList = {
   ShopCourseDetail: {
     courseId: string;
   };
+  ShopOrdersMain: undefined;
 };
 export type ShopStackScreenProps<T extends keyof ShopStackParamList> =
   CompositeScreenProps<
