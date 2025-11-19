@@ -23,9 +23,12 @@ export type CoursesStackParamList = {
   CourseDetail: {
     slug: string;
   };
-  
+  LessonPlayer: {
+    courseId: string;
+    courseTitle: string;
+    sectionId: string;
 };
-
+}
 export type CoursesStackScreenProps<T extends keyof CoursesStackParamList> =
   CompositeScreenProps<
     NativeStackScreenProps<CoursesStackParamList, T>,
@@ -129,6 +132,7 @@ export type DrawerParamList = {
   Help: undefined;
   ShopMain: undefined;
   OrdersMain: undefined;
+  ChatList: undefined; // ✅ Add Chat to drawer
 };
 
 export type DrawerScreenProps<T extends keyof DrawerParamList> =
@@ -199,3 +203,22 @@ export type OrdersStackScreenProps<T extends keyof OrdersStackParamList> =
     >
   >;
 
+// ==============================================
+// CHAT STACK
+// ==============================================
+export type ChatStackParamList = {
+  ChatList: undefined;
+  ChatDetail: {
+    conversationId: string;
+  };
+  StartChat?: {
+    productId?: string;
+    productSlug?: string;
+  };
+};
+
+export type ChatStackScreenProps<T extends keyof ChatStackParamList> =
+  CompositeScreenProps<
+    NativeStackScreenProps<ChatStackParamList, T>,
+    RNDrawerScreenProps<DrawerParamList>
+  >;

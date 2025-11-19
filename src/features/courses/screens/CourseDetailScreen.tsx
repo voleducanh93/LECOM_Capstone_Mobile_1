@@ -12,7 +12,6 @@ import {
 } from "react-native";
 import { useCourseBySlug } from "../hooks/useCourseBySlug";
 import { useEnrollCourse } from "../hooks/useEnrollCourse";
-import { useCourseEnrollment } from "../hooks/useCourseEnrollment";
 
 export function CourseDetailScreen({ navigation, route }: any) {
   const { slug } = route.params;
@@ -22,20 +21,13 @@ export function CourseDetailScreen({ navigation, route }: any) {
   const course = data?.result;
   const courseId = course?.id ?? "";
 
-  // 🔹 hook check enrollment
-  const {
-    data: enrollment,
-    isLoading: isEnrollmentLoading,
-    isError: isEnrollmentError,
-    refetch: refetchEnrollment,
-  } = useCourseEnrollment(courseId);
+  // ✅ Use isEnrolled from API response
+  const isEnrolled = course?.isEnrolled ?? false;
 
   // 🔹 hook enroll
   const enrollMutation = useEnrollCourse(courseId);
 
-  const isEnrolled = !!enrollment;
-  const isEnrollDisabled =
-    !courseId || isEnrollmentLoading || enrollMutation.isPending || isEnrolled;
+  const isEnrollDisabled = !courseId || enrollMutation.isPending || isEnrolled;
 
   const toggleSection = (sectionId: string) => {
     setExpandedSections((prev) => {
@@ -70,6 +62,47 @@ export function CourseDetailScreen({ navigation, route }: any) {
         total + section.lessons.reduce((sum, lesson) => sum + lesson.durationSeconds, 0),
       0
     );
+  };
+
+  const handlePlayLesson = (lesson: any, section: any) => {
+    if (!isEnrolled) {
+      Alert.alert(
+        "Enroll Required",
+        "You need to enroll in this course to watch lessons",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Enroll Now",
+            onPress: handleEnroll,
+          },
+        ]
+      );
+      return;
+    }
+
+    // ✅ Navigate to lesson player
+    navigation.navigate("LessonPlayer", {
+      courseId: courseId,
+      courseTitle: course?.title ?? "",
+      sectionId: section.id,
+      sectionTitle: section.title,
+      lessonId: lesson.id,
+      lessonTitle: lesson.title,
+      contentUrl: lesson.contentUrl,
+      hasLinkedProducts: lesson.hasLinkedProducts,
+      linkedProducts: lesson.linkedProducts,
+    });
+  };
+
+  const handleEnroll = async () => {
+    if (!courseId || isEnrolled) return;
+    try {
+      await enrollMutation.mutateAsync();
+      Alert.alert("Success", "You have enrolled in this course");
+      refetch(); // Refresh to get updated isEnrolled status
+    } catch (error: any) {
+      Alert.alert("Error", error?.message ?? "Failed to enroll");
+    }
   };
 
   const renderLoading = () => (
@@ -166,6 +199,14 @@ export function CourseDetailScreen({ navigation, route }: any) {
           )}
 
           <View className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/60 to-transparent" />
+
+          {/* ✅ Enrolled Badge */}
+          {isEnrolled && (
+            <View className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-mint dark:bg-gold flex-row items-center">
+              <FontAwesome name="check-circle" size={14} color="white" />
+              <Text className="text-white text-xs font-bold ml-1">Enrolled</Text>
+            </View>
+          )}
         </View>
 
         {/* Course Info */}
@@ -334,9 +375,7 @@ export function CourseDetailScreen({ navigation, route }: any) {
                         key={lesson.id}
                         className="flex-row items-center p-4 bg-beige/20 dark:bg-dark-border/20 rounded-xl mb-2"
                         activeOpacity={0.7}
-                        onPress={() => {
-                          Alert.alert("Lesson", `Playing: ${lesson.title}`);
-                        }}
+                        onPress={() => handlePlayLesson(lesson, section)}
                       >
                         <View className="w-10 h-10 rounded-full bg-mint/20 dark:bg-gold/20 items-center justify-center mr-3">
                           <Text className="text-mint dark:text-gold font-bold">
@@ -351,7 +390,7 @@ export function CourseDetailScreen({ navigation, route }: any) {
                           >
                             {lesson.title}
                           </Text>
-                          <View className="flex-row items-center">
+                          <View className="flex-row items-center flex-wrap">
                             <FontAwesome name="video-camera" size={12} color="#9CA3AF" />
                             <Text className="text-xs text-light-textSecondary dark:text-dark-textSecondary ml-1">
                               {lesson.type}
@@ -363,11 +402,32 @@ export function CourseDetailScreen({ navigation, route }: any) {
                             <Text className="text-xs text-light-textSecondary dark:text-dark-textSecondary ml-1">
                               {formatDuration(lesson.durationSeconds)}
                             </Text>
+                            
+                            {/* ✅ Linked Products Badge */}
+                            {lesson.hasLinkedProducts && (
+                              <>
+                                <Text className="text-xs text-light-textSecondary dark:text-dark-textSecondary mx-2">
+                                  •
+                                </Text>
+                                <FontAwesome name="shopping-bag" size={12} color="#ACD6B8" />
+                                <Text className="text-xs text-mint dark:text-gold ml-1 font-semibold">
+                                  {lesson.linkedProducts.length} {lesson.linkedProducts.length === 1 ? 'product' : 'products'}
+                                </Text>
+                              </>
+                            )}
                           </View>
                         </View>
 
-                        <View className="w-10 h-10 rounded-full bg-mint/10 dark:bg-gold/10 items-center justify-center">
-                          <FontAwesome name="play" size={14} color="#ACD6B8" />
+                        <View className={`w-10 h-10 rounded-full items-center justify-center ${
+                          isEnrolled 
+                            ? "bg-mint/10 dark:bg-gold/10" 
+                            : "bg-gray-200 dark:bg-gray-700"
+                        }`}>
+                          <FontAwesome 
+                            name={isEnrolled ? "play" : "lock"} 
+                            size={14} 
+                            color={isEnrolled ? "#ACD6B8" : "#9CA3AF"} 
+                          />
                         </View>
                       </TouchableOpacity>
                     ))}
@@ -403,16 +463,7 @@ export function CourseDetailScreen({ navigation, route }: any) {
             }
             ${isEnrollDisabled && !isEnrolled ? "opacity-60" : ""}
           `}
-          onPress={async () => {
-            if (!courseId || isEnrolled) return;
-            try {
-              const result = await enrollMutation.mutateAsync();
-              Alert.alert("Success", "You have enrolled in this course");
-              refetchEnrollment();
-            } catch (error: any) {
-              Alert.alert("Error", error?.message ?? "Failed to enroll");
-            }
-          }}
+          onPress={handleEnroll}
         >
           {enrollMutation.isPending ? (
             <ActivityIndicator color="#FFFFFF" />

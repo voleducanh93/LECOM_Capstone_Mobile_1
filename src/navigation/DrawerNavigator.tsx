@@ -13,6 +13,8 @@ import { MainTabNavigator } from "./MainTabNavigator";
 import { ShopStackNavigator } from "./ShopStackNavigator";
 import { DrawerParamList } from "./types";
 import { OrdersStackNavigator } from "./OrdersStackNavigator";
+import { ChatStackNavigator } from "./ChatStackNavigator";
+import { FontAwesome } from "@expo/vector-icons";
 
 
 const Drawer = createDrawerNavigator<DrawerParamList>();
@@ -140,6 +142,17 @@ export function DrawerNavigator() {
           headerTitleStyle: {
             fontWeight: "bold",
           },
+        }}
+      />
+
+      <Drawer.Screen
+        name="ChatList"
+        component={ChatStackNavigator}
+        options={{
+          title: "Messages",
+          drawerIcon: ({ color, size }) => (
+            <FontAwesome name="comments" size={size} color={color} />
+          ),
         }}
       />
 

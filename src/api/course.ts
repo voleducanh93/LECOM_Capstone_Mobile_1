@@ -30,25 +30,39 @@ export interface CourseDetailResult {
   summary: string
   categoryName: string
   courseThumbnail: string
+  isEnrolled: boolean   // ⭐ NEW
+
   shop: {
     id: number
     name: string
     avatar: string | null
     description: string
   }
+
   sections: {
     id: string
     title: string
     orderIndex: number
+
     lessons: {
       id: string
       title: string
       type: string
       durationSeconds: number
       contentUrl: string
+      orderIndex: number    
+      hasLinkedProducts: boolean 
+      linkedProducts: {
+        id: string
+        name: string
+        price: number
+        thumbnailUrl: string
+        shopName: string
+      }[]
     }[]
   }[]
 }
+
 
 // ===== Enrollment types =====
 
