@@ -96,6 +96,10 @@ export type ShopStackParamList = {
     courseId: string;
   };
   ShopOrdersMain: undefined;
+  SellerChatList: undefined;
+  ChatDetail: {
+    conversationId: string;
+  };
 };
 export type ShopStackScreenProps<T extends keyof ShopStackParamList> =
   CompositeScreenProps<
@@ -132,7 +136,8 @@ export type DrawerParamList = {
   Help: undefined;
   ShopMain: undefined;
   OrdersMain: undefined;
-  ChatList: undefined; // ✅ Add Chat to drawer
+  ChatList: undefined; 
+  CommunityList: undefined;
 };
 
 export type DrawerScreenProps<T extends keyof DrawerParamList> =
@@ -215,6 +220,7 @@ export type ChatStackParamList = {
     productId?: string;
     productSlug?: string;
   };
+  SellerChatList: undefined;
 };
 
 export type ChatStackScreenProps<T extends keyof ChatStackParamList> =
@@ -222,3 +228,24 @@ export type ChatStackScreenProps<T extends keyof ChatStackParamList> =
     NativeStackScreenProps<ChatStackParamList, T>,
     RNDrawerScreenProps<DrawerParamList>
   >;
+
+  // ==============================================
+// COMMUNITY STACK
+// ==============================================
+export type CommunityStackParamList = {
+  CommunityList: undefined;
+  CreateCommunityPost: undefined;
+  CommunityDetail: {
+    postId: string;
+  };
+};
+
+export type CommunityStackScreenProps<
+  T extends keyof CommunityStackParamList
+> = CompositeScreenProps<
+  NativeStackScreenProps<CommunityStackParamList, T>,
+  CompositeScreenProps<
+    BottomTabScreenProps<MainTabParamList>,
+    RNDrawerScreenProps<DrawerParamList>
+  >
+>;

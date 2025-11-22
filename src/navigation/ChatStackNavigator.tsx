@@ -16,6 +16,7 @@ export type ChatStackParamList = {
     productId?: string;
     productSlug?: string;
   };
+  SellerChatList: undefined;
 };
 
 const Stack = createNativeStackNavigator<ChatStackParamList>();
@@ -23,12 +24,8 @@ const Stack = createNativeStackNavigator<ChatStackParamList>();
 export function ChatStackNavigator() {
   return (
     <Stack.Navigator
-      screenOptions={{
+       screenOptions={{
         headerShown: false,
-        animation: Platform.OS === "ios" ? "default" : "slide_from_right",
-        contentStyle: {
-          backgroundColor: "#FAF8F5", // cream background
-        },
       }}
     >
       <Stack.Screen

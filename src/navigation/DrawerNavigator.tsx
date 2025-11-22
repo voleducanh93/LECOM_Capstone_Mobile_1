@@ -1,6 +1,7 @@
 import { ThemedButton } from "@/components/themed-button";
 import { SettingsScreen } from "@/features/settings/screens/SettingsScreen";
 import { useAuthStore } from "@/store/auth-store";
+import { FontAwesome } from "@expo/vector-icons";
 import {
   createDrawerNavigator,
   DrawerContentComponentProps,
@@ -9,12 +10,13 @@ import {
 } from "@react-navigation/drawer";
 import React from "react";
 import { Alert, Text, View } from "react-native";
+import { ChatStackNavigator } from "./ChatStackNavigator";
 import { MainTabNavigator } from "./MainTabNavigator";
+import { OrdersStackNavigator } from "./OrdersStackNavigator";
 import { ShopStackNavigator } from "./ShopStackNavigator";
 import { DrawerParamList } from "./types";
-import { OrdersStackNavigator } from "./OrdersStackNavigator";
-import { ChatStackNavigator } from "./ChatStackNavigator";
-import { FontAwesome } from "@expo/vector-icons";
+
+import { CommunityScreen } from "@/features/community/screens/CommunityScreen";
 
 
 const Drawer = createDrawerNavigator<DrawerParamList>();
@@ -118,7 +120,7 @@ export function DrawerNavigator() {
         options={{
           title: "My Shop",
           drawerIcon: ({ color }) => <Text style={{ fontSize: 20 }}>⚙️</Text>,
-          headerShown: true,
+          headerShown: false,
           headerStyle: {
             backgroundColor: "#3B82F6",
           },
@@ -150,6 +152,16 @@ export function DrawerNavigator() {
         component={ChatStackNavigator}
         options={{
           title: "Messages",
+          drawerIcon: ({ color, size }) => (
+            <FontAwesome name="comments" size={size} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="CommunityList"
+        component={CommunityScreen}
+        options={{
+          title: "Community",
           drawerIcon: ({ color, size }) => (
             <FontAwesome name="comments" size={size} color={color} />
           ),

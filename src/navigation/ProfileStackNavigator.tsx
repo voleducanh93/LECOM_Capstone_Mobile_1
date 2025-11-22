@@ -10,14 +10,7 @@ export function ProfileStackNavigator() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: {
-          backgroundColor: "#3B82F6",
-        },
-        headerTintColor: "#fff",
-        headerTitleStyle: {
-          fontWeight: "bold",
-        },
-        animation: "slide_from_right",
+        headerShown: false,
       }}
     >
       <Stack.Screen

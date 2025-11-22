@@ -375,16 +375,29 @@ export function ShopScreen({ navigation }: any) {
               </TouchableOpacity>
             </View>
 
-            {/* ✅ Second Row - Orders */}
-            <TouchableOpacity
-              className="bg-gold rounded-2xl p-4 flex-row items-center justify-center shadow-md active:opacity-80"
-              onPress={() => navigation.navigate("ShopOrdersMain")}
-            >
-              <FontAwesome name="shopping-bag" size={20} color="white" />
-              <Text className="text-white font-bold ml-2">
-                Shop Orders
-              </Text>
-            </TouchableOpacity>
+            {/* Second Row - Orders & Customer Chats */}
+            <View className="flex-row gap-3 mb-3">
+              <TouchableOpacity
+                className="flex-1 bg-gold rounded-2xl p-4 items-center justify-center shadow-md active:opacity-80"
+                onPress={() => navigation.navigate("ShopOrdersMain")}
+              >
+                <FontAwesome name="shopping-bag" size={20} color="white" />
+                <Text className="text-white font-bold mt-2">
+                  Shop Orders
+                </Text>
+              </TouchableOpacity>
+
+              {/* ✅ Customer Chats Button */}
+              <TouchableOpacity
+                className="flex-1 bg-lavender rounded-2xl p-4 items-center justify-center shadow-md active:opacity-80"
+                onPress={() => navigation.navigate("SellerChatList")}
+              >
+                <FontAwesome name="comments" size={20} color="white" />
+                <Text className="text-white font-bold mt-2">
+                  Customer Chats
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Social Media */}

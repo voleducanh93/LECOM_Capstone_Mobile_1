@@ -1,6 +1,7 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { DrawerNavigationProp } from "@react-navigation/drawer";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -16,18 +17,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLandingPage } from "../hooks/useLandingPage";
 import type { HomeStackParamList } from "@/navigation/HomeStackNavigator";
 
-
-
 export function HomeScreen() {
   const { data, isLoading, isError } = useLandingPage();
-  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList> & DrawerNavigationProp<any>>();
   const [searchQuery, setSearchQuery] = useState("");
 
   const landingData = data?.result;
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-cream dark:bg-dark-background" edges={['bottom']}>
+      <SafeAreaView className="flex-1 items-center justify-center bg-cream dark:bg-dark-background" edges={['top', 'bottom']}>
         <View className="items-center">
           <ActivityIndicator size="large" color="#ACD6B8" />
           <Text className="text-light-textSecondary dark:text-dark-textSecondary mt-4 text-base">
@@ -40,7 +39,7 @@ export function HomeScreen() {
 
   if (isError || !landingData) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-cream dark:bg-dark-background px-6" edges={['bottom']}>
+      <SafeAreaView className="flex-1 items-center justify-center bg-cream dark:bg-dark-background px-6" edges={['top', 'bottom']}>
         <View className="items-center">
           <View className="w-20 h-20 rounded-full bg-coral/20 items-center justify-center mb-4">
             <FontAwesome name="exclamation-triangle" size={40} color="#FF6B6B" />
@@ -55,10 +54,19 @@ export function HomeScreen() {
   }
 
   return (
-    <View className="flex-1 bg-cream dark:bg-dark-background">
+    <SafeAreaView className="flex-1 bg-cream dark:bg-dark-background" edges={['top', 'bottom']}>
       {/* Header */}
-      <View className="px-6 py-4 bg-white dark:bg-dark-card border-b border-beige/30 dark:border-dark-border/30" style={{ paddingTop: Platform.OS === 'ios' ? 50 : 16 }}>
+      <View className="px-6 py-4 bg-white dark:bg-dark-card border-b border-beige/30 dark:border-dark-border/30">
         <View className="flex-row items-center justify-between mb-4">
+          {/* Left - Menu Button */}
+          <Pressable
+            className="w-12 h-12 rounded-xl bg-mint/10 dark:bg-gold/10 items-center justify-center mr-3"
+            onPress={() => navigation.openDrawer()}
+          >
+            <FontAwesome name="bars" size={20} color="#ACD6B8" />
+          </Pressable>
+
+          {/* Center - Title */}
           <View className="flex-1">
             <Text className="text-3xl font-bold text-light-text dark:text-dark-text">
               Discover
@@ -70,6 +78,8 @@ export function HomeScreen() {
               </Text>
             </View>
           </View>
+
+          {/* Right - Action Buttons */}
           <View className="flex-row gap-2">
             <Pressable
               className="w-12 h-12 rounded-xl bg-mint/10 dark:bg-gold/10 items-center justify-center"
@@ -320,6 +330,6 @@ export function HomeScreen() {
           </View>
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }

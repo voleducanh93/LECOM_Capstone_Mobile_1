@@ -1,3 +1,5 @@
+import { ChatDetailScreen } from "@/features/chat/screens/ChatDetailScreen";
+import { SellerChatListScreen } from "@/features/chat/screens/SellerChatListScreen";
 import { CreateShopCourseScreen } from "@/features/shopCourses/screens/CreateShopCourseScreen";
 import { ShopCourseDetailScreen } from "@/features/shopCourses/screens/ShopCourseDetailScreen";
 import { ShopCoursesScreen } from "@/features/shopCourses/screens/ShopCoursesScreen";
@@ -29,6 +31,10 @@ export type ShopStackParamList = {
     courseId: string;
   };
   ShopOrdersMain: undefined;
+  SellerChatList: undefined;
+  ChatDetail: {
+    conversationId: string;
+  };
 };
 
 const Stack = createNativeStackNavigator<ShopStackParamList>();
@@ -102,6 +108,18 @@ export function ShopStackNavigator() {
         component={ShopOrdersScreen}
         options={{ title: "Shop Orders", presentation: "card" }}
       />
+       <Stack.Screen
+        name="SellerChatList"
+        component={SellerChatListScreen}
+        options={{ title: "Seller Chat", presentation: "card" }}
+      />
+        <Stack.Screen
+              name="ChatDetail"
+              component={ChatDetailScreen}
+              options={{
+                title: "Chat",
+              }}
+            />
     </Stack.Navigator>
   );
 }
